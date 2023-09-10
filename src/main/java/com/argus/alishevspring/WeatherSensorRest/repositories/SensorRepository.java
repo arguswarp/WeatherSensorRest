@@ -1,25 +1,10 @@
 package com.argus.alishevspring.WeatherSensorRest.repositories;
 
-import com.argus.alishevspring.FirstRestApp.models.Person;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.argus.alishevspring.WeatherSensorRest.models.Sensor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
-public interface SensorRepository extends JpaRepository<Person, Integer> {
-    List<Person> findByName(String name);
+public interface SensorRepository extends JpaRepository<Sensor, Integer> {
 
-    List<Person> findByNameOrderByAge(String name);
-
-    List<Person> findByEmail(String email);
-
-    List<Person> findByNameStartingWith(String startingWith);
-
-    List<Person> findByNameOrEmail(String name, String email);
-
-//    Page<Sensor> findAll(Pageable pageable);
-    Page<Person> findByName(String name, Pageable pageable);
 }

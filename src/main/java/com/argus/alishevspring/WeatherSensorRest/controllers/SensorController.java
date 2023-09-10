@@ -1,11 +1,12 @@
 package com.argus.alishevspring.WeatherSensorRest.controllers;
 
-import com.argus.alishevspring.FirstRestApp.dto.PersonDTO;
-import com.argus.alishevspring.FirstRestApp.exceptions.PersonNotCreatedException;
-import com.argus.alishevspring.FirstRestApp.exceptions.PersonNotFoundException;
-import com.argus.alishevspring.FirstRestApp.models.Person;
-import com.argus.alishevspring.FirstRestApp.services.PeopleService;
-import com.argus.alishevspring.FirstRestApp.util.PersonErrorResponse;
+
+import com.argus.alishevspring.WeatherSensorRest.dto.SensorDTO;
+import com.argus.alishevspring.WeatherSensorRest.exceptions.SensorNotCreatedException;
+import com.argus.alishevspring.WeatherSensorRest.exceptions.SensorNotFoundException;
+import com.argus.alishevspring.WeatherSensorRest.models.Sensor;
+import com.argus.alishevspring.WeatherSensorRest.services.SensorService;
+import com.argus.alishevspring.WeatherSensorRest.util.SensorErrorResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,35 +19,35 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/people")
+@RequestMapping("/sensor")
 public class SensorController {
 
-    private final PeopleService peopleService;
+    private final SensorService sensorService;
 
     private final ModelMapper modelMapper;
 
     @Autowired
-    public SensorController(PeopleService peopleService, ModelMapper modelMapper) {
-        this.peopleService = peopleService;
+    public SensorController(SensorService sensorService, ModelMapper modelMapper) {
+        this.sensorService = sensorService;
         this.modelMapper = modelMapper;
     }
 
     @GetMapping()
-    public List<PersonDTO> getPeople() {
-        return peopleService.findAll().stream().map(this::convertToPersonDTO).toList(); //Jackson convert this to JSON
+    public List<SensorDTO> getPeople() {
+        return sensorService.findAll().stream().map(this::convertToSensorDTO).toList(); //Jackson convert this to JSON
     }
 
     @GetMapping("/{id}")
-    public PersonDTO getPerson(@PathVariable(name = "id") int id) {
-        return convertToPersonDTO(peopleService.findOne(id)); //Jackson convert this to JSON
+    public SensorDTO getPerson(@PathVariable(name = "id") int id) {
+        return convertToSensorDTO(sensorService.findOne(id)); //Jackson convert this to JSON
     }
 
-    private PersonDTO convertToPersonDTO(Person person) {
-        return modelMapper.map(person, PersonDTO.class);
+    private SensorDTO convertToSensorDTO(Sensor sensor) {
+        return modelMapper.map(sensor, SensorDTO.class);
     }
 
-    @PostMapping
-    public ResponseEntity<HttpStatus> create(@RequestBody @Valid PersonDTO personDTO,
+    @PostMapping("/registration")
+    public ResponseEntity<HttpStatus> create(@RequestBody @Valid SensorDTO sensorDTO,
                                              BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessage = new StringBuilder();
@@ -57,28 +58,28 @@ public class SensorController {
                         .append(error.getDefaultMessage())
                         .append(";");
             }
-            throw new PersonNotCreatedException(errorMessage.toString());
+            throw new SensorNotCreatedException(errorMessage.toString());
         }
-        peopleService.save(convertToPerson(personDTO));
+        sensorService.save(convertToSensor(sensorDTO));
         // sending http response with empty body and status 200
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
-    private Person convertToPerson(PersonDTO personDTO) {
-        return modelMapper.map(personDTO, Person.class);
+    private Sensor convertToSensor(SensorDTO sensorDTO) {
+        return modelMapper.map(sensorDTO, Sensor.class);
     }
 
 
     @ExceptionHandler
-    private ResponseEntity<PersonErrorResponse> handleException(PersonNotFoundException exception) {
-        PersonErrorResponse response = new PersonErrorResponse("Sensor with this id was not found",
+    private ResponseEntity<SensorErrorResponse> handleException(SensorNotFoundException exception) {
+        SensorErrorResponse response = new SensorErrorResponse("Sensor with this id was not found",
                 System.currentTimeMillis());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND); // NOT_FOUND - 404
     }
 
     @ExceptionHandler
-    private ResponseEntity<PersonErrorResponse> handleException(PersonNotCreatedException exception) {
-        PersonErrorResponse response = new PersonErrorResponse(exception.getMessage(),
+    private ResponseEntity<SensorErrorResponse> handleException(SensorNotCreatedException exception) {
+        SensorErrorResponse response = new SensorErrorResponse(exception.getMessage(),
                 System.currentTimeMillis());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // BAD_REQUEST - 400
     }
