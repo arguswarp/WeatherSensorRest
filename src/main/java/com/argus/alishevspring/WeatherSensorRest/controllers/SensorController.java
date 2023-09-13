@@ -6,7 +6,7 @@ import com.argus.alishevspring.WeatherSensorRest.exceptions.SensorNotCreatedExce
 import com.argus.alishevspring.WeatherSensorRest.exceptions.SensorNotFoundException;
 import com.argus.alishevspring.WeatherSensorRest.models.Sensor;
 import com.argus.alishevspring.WeatherSensorRest.services.SensorService;
-import com.argus.alishevspring.WeatherSensorRest.util.SensorErrorResponse;
+import com.argus.alishevspring.WeatherSensorRest.util.ErrorResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/sensor")
+@RequestMapping("/sensors")
 public class SensorController {
 
     private final SensorService sensorService;
@@ -30,20 +30,6 @@ public class SensorController {
     public SensorController(SensorService sensorService, ModelMapper modelMapper) {
         this.sensorService = sensorService;
         this.modelMapper = modelMapper;
-    }
-
-    @GetMapping()
-    public List<SensorDTO> getPeople() {
-        return sensorService.findAll().stream().map(this::convertToSensorDTO).toList(); //Jackson convert this to JSON
-    }
-
-    @GetMapping("/{id}")
-    public SensorDTO getPerson(@PathVariable(name = "id") int id) {
-        return convertToSensorDTO(sensorService.findOne(id)); //Jackson convert this to JSON
-    }
-
-    private SensorDTO convertToSensorDTO(Sensor sensor) {
-        return modelMapper.map(sensor, SensorDTO.class);
     }
 
     @PostMapping("/registration")
@@ -71,17 +57,16 @@ public class SensorController {
 
 
     @ExceptionHandler
-    private ResponseEntity<SensorErrorResponse> handleException(SensorNotFoundException exception) {
-        SensorErrorResponse response = new SensorErrorResponse("Sensor with this id was not found",
+    private ResponseEntity<ErrorResponse> handleException(SensorNotFoundException exception) {
+        ErrorResponse response = new ErrorResponse("Sensor with this id was not found",
                 System.currentTimeMillis());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND); // NOT_FOUND - 404
     }
 
     @ExceptionHandler
-    private ResponseEntity<SensorErrorResponse> handleException(SensorNotCreatedException exception) {
-        SensorErrorResponse response = new SensorErrorResponse(exception.getMessage(),
+    private ResponseEntity<ErrorResponse> handleException(SensorNotCreatedException exception) {
+        ErrorResponse response = new ErrorResponse(exception.getMessage(),
                 System.currentTimeMillis());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // BAD_REQUEST - 400
     }
-
 }
