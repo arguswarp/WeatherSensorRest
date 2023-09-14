@@ -4,7 +4,6 @@ package com.argus.alishevspring.WeatherSensorRest.controllers;
 import com.argus.alishevspring.WeatherSensorRest.dto.MeasurementDTO;
 import com.argus.alishevspring.WeatherSensorRest.exceptions.MeasurementNotCreatedException;
 import com.argus.alishevspring.WeatherSensorRest.exceptions.MeasurementNotFoundException;
-import com.argus.alishevspring.WeatherSensorRest.exceptions.SensorNotCreatedException;
 import com.argus.alishevspring.WeatherSensorRest.exceptions.SensorNotRegisteredException;
 import com.argus.alishevspring.WeatherSensorRest.models.Measurement;
 import com.argus.alishevspring.WeatherSensorRest.services.MeasurementService;
@@ -41,7 +40,7 @@ public class MeasurementController {
 
     @GetMapping("/rainyDayCount")
     public Long getRainyDayCount() {
-        return measurementService.findAll().stream().filter(Measurement::isRaining).count();
+        return measurementService.getRainyDays();
     }
 
     private MeasurementDTO convertToMeasurementDTO(Measurement measurement) {

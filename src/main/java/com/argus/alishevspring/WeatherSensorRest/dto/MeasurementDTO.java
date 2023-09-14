@@ -1,10 +1,7 @@
 package com.argus.alishevspring.WeatherSensorRest.dto;
 
-import com.argus.alishevspring.WeatherSensorRest.models.Sensor;
-
 import javax.validation.constraints.DecimalMax;
 import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 public class MeasurementDTO {

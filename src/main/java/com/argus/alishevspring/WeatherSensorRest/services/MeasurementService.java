@@ -27,6 +27,10 @@ public class MeasurementService {
         return measurementRepository.findAll();
     }
 
+    public long getRainyDays() {
+        return measurementRepository.countMeasurementsByRainingTrue();
+    }
+
     @Transactional
     public void save(Measurement measurement) {
         measurement.setSensor(sensorRepository.findSensorByName(measurement.getSensor().getName()).orElseThrow(SensorNotRegisteredException::new));
