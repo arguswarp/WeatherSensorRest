@@ -2,22 +2,22 @@ package com.argus.alishevspring.WeatherSensorRest.controllers;
 
 
 import com.argus.alishevspring.WeatherSensorRest.dto.MeasurementDTO;
-import com.argus.alishevspring.WeatherSensorRest.exceptions.MeasurementNotCreatedException;
-import com.argus.alishevspring.WeatherSensorRest.exceptions.MeasurementNotFoundException;
-import com.argus.alishevspring.WeatherSensorRest.exceptions.SensorNotRegisteredException;
+import com.argus.alishevspring.WeatherSensorRest.dto.MeasurementsResponse;
+import com.argus.alishevspring.WeatherSensorRest.exceptions.MeasurementException;
 import com.argus.alishevspring.WeatherSensorRest.models.Measurement;
 import com.argus.alishevspring.WeatherSensorRest.services.MeasurementService;
 import com.argus.alishevspring.WeatherSensorRest.util.ErrorResponse;
+import com.argus.alishevspring.WeatherSensorRest.util.MeasurementValidator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
+
+import static com.argus.alishevspring.WeatherSensorRest.util.ErrorsUtil.returnErrorsToClient;
 
 @RestController
 @RequestMapping("/measurements")
@@ -27,15 +27,18 @@ public class MeasurementController {
 
     private final ModelMapper modelMapper;
 
+    private final MeasurementValidator measurementValidator;
+
     @Autowired
-    public MeasurementController(MeasurementService measurementService, ModelMapper modelMapper) {
+    public MeasurementController(MeasurementService measurementService, ModelMapper modelMapper, MeasurementValidator measurementValidator) {
         this.measurementService = measurementService;
         this.modelMapper = modelMapper;
+        this.measurementValidator = measurementValidator;
     }
 
     @GetMapping()
-    public List<MeasurementDTO> getMeasurements() {
-        return measurementService.findAll().stream().map(this::convertToMeasurementDTO).toList(); //Jackson convert this to JSON
+    public MeasurementsResponse getMeasurements() {
+        return new MeasurementsResponse(measurementService.findAll().stream().map(this::convertToMeasurementDTO).toList()); //Jackson convert this to JSON
     }
 
     @GetMapping("/rainyDayCount")
@@ -50,18 +53,12 @@ public class MeasurementController {
     @PostMapping("/add")
     public ResponseEntity<HttpStatus> create(@RequestBody @Valid MeasurementDTO measurementDTO,
                                              BindingResult bindingResult) {
+        Measurement measurementToAdd = convertToMeasurement(measurementDTO);
+        measurementValidator.validate(measurementToAdd, bindingResult);
         if (bindingResult.hasErrors()) {
-            StringBuilder errorMessage = new StringBuilder();
-            List<FieldError> errors = bindingResult.getFieldErrors();
-            for (FieldError error : errors) {
-                errorMessage.append(error.getField())
-                        .append(" - ")
-                        .append(error.getDefaultMessage())
-                        .append(";");
-            }
-            throw new MeasurementNotCreatedException(errorMessage.toString());
+            returnErrorsToClient(bindingResult);
         }
-        measurementService.save(convertToMeasurement(measurementDTO));
+        measurementService.save(measurementToAdd);
         // sending http response with empty body and status 200
         return ResponseEntity.ok(HttpStatus.OK);
     }
@@ -71,24 +68,9 @@ public class MeasurementController {
     }
 
     @ExceptionHandler
-    private ResponseEntity<ErrorResponse> handleException(MeasurementNotFoundException exception) {
-        ErrorResponse response = new ErrorResponse("Measurement with this id was not found",
-                System.currentTimeMillis());
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND); // NOT_FOUND - 404
-    }
-
-    @ExceptionHandler
-    private ResponseEntity<ErrorResponse> handleException(MeasurementNotCreatedException exception) {
+    private ResponseEntity<ErrorResponse> handleException(MeasurementException exception) {
         ErrorResponse response = new ErrorResponse(exception.getMessage(),
                 System.currentTimeMillis());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // BAD_REQUEST - 400
     }
-
-    @ExceptionHandler
-    private ResponseEntity<ErrorResponse> handleException(SensorNotRegisteredException exception) {
-        ErrorResponse response = new ErrorResponse("Sensor is not registered",
-                System.currentTimeMillis());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // BAD_REQUEST - 400
-    }
-
 }

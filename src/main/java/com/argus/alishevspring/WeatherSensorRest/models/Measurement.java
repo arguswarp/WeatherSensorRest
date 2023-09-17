@@ -17,7 +17,7 @@ public class Measurement {
     @DecimalMin(value = "-100", message = "Value can't be lower -100")
     @DecimalMax(value = "100", message = "Value can't be greater 100")
     @Column(name = "value")
-    private double value;
+    private Double value;
     @NotNull(message = "Raining should not be empty")
     @Column(name = "raining")
     private boolean raining;
@@ -45,11 +45,11 @@ public class Measurement {
         this.id = id;
     }
 
-    public double getValue() {
+    public Double getValue() {
         return value;
     }
 
-    public void setValue(double value) {
+    public void setValue(Double value) {
         this.value = value;
     }
 
